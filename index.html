@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>ManejoFA</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Georgia,'Times New Roman',serif;background:#c8e6e0;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:1rem 0 2rem;}
+
+/* PHONE FRAME */
+.phone{width:370px;min-height:700px;background:#dff0ed;border-radius:36px;border:2.5px solid #a0c8c0;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 8px 32px rgba(0,80,60,0.13);}
+
+/* SCREENS */
+.screen{display:none;flex:1;flex-direction:column;overflow-y:auto;padding:20px 22px 90px;}
+.screen.active{display:flex;}
+
+/* TEXTOS GLOBALES — REQ A1 mayores */
+.screen-title{font-size:36px;font-weight:800;color:#1a2e2b;margin-bottom:10px;line-height:1.15;font-family:Georgia,serif;}
+.screen-subtitle{font-size:18px;color:#3a5550;margin-bottom:22px;line-height:1.65;font-weight:400;}
+
+/* BOTÓN VOLVER — REQ A2 */
+.back-bar{display:flex;align-items:center;margin-bottom:20px;}
+.back-btn{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #2a7a6a;border-radius:14px;cursor:pointer;font-size:19px;font-weight:700;color:#2a7a6a;padding:13px 22px;font-family:Georgia,serif;min-height:56px;transition:background .15s;}
+.back-btn:active{background:#e0f4ec;}
+.back-btn svg{width:24px;height:24px;flex-shrink:0;}
+
+/* ====== INICIO ====== */
+.ecg-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-top:32px;
+  margin-bottom:18px;
+  width:100%;
+}
+.ecg-wrap svg{
+  display:block;
+  margin:0 auto;
+  max-width:100%;
+}
+.logo-area{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  margin-bottom:24px;
+  width:100%;
+}
+.app-name{font-size:36px;font-weight:900;color:#1a2e2b;letter-spacing:-0.5px;font-family:Georgia,serif;text-align:center;width:100%;}
+.app-tagline{font-size:17px;color:#4a7068;margin-top:6px;font-weight:400;text-align:center;width:100%;}
+
+.main-btn{display:flex;align-items:center;gap:14px;background:#fff;border:2px solid #1a2e2b;border-radius:18px;padding:20px 22px;margin-bottom:16px;cursor:pointer;text-align:left;width:100%;transition:background 0.15s;min-height:80px;}
+.main-btn:active{background:#e8f4f1;}
+.main-btn-icon{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.main-btn-icon.green{background:#b8e4d4;}
+.main-btn-icon.blue{background:#b8d4e4;}
+.main-btn-icon.orange{background:#f4d4a8;}
+.main-btn-text{font-size:20px;font-weight:700;color:#1a2e2b;line-height:1.3;font-family:Georgia,serif;}
+.main-btn-sub{font-size:14px;color:#4a7068;font-weight:400;margin-top:4px;}
+.inicio-frase{text-align:center;font-size:17px;color:#2a5a4a;font-style:italic;margin-top:10px;padding:14px 8px;line-height:1.65;}
+
+/* ====== TRATAMIENTO ====== */
+.drug-card{background:#b8e4d4;border:2.5px solid #1a2e2b;border-radius:20px;padding:22px;text-align:center;margin-bottom:22px;}
+.drug-name-label{font-size:16px;color:#2a5a4a;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* Selector fármaco */
+.drug-select{font-size:19px;font-weight:700;color:#1a2e2b;background:#fff;border:2px solid #2a7a6a;border-radius:10px;text-align:center;width:100%;outline:none;font-family:Georgia,serif;padding:12px 8px;cursor:pointer;appearance:auto;}
+.drug-select:focus{border-color:#1a2e2b;}
+.drug-other-input{display:none;margin-top:10px;font-size:18px;font-weight:700;color:#1a2e2b;background:#fff;border:2px dashed #2a7a6a;border-radius:10px;text-align:center;width:100%;outline:none;font-family:Georgia,serif;padding:10px;}
+.drug-other-input.visible{display:block;}
+
+.drug-schedule-label{font-size:16px;color:#2a5a4a;font-weight:700;margin-top:16px;margin-bottom:8px;}
+
+/* Selector hora */
+.drug-time-select{font-size:34px;font-weight:900;color:#1a2e2b;background:#fff;border:2px solid #2a7a6a;border-radius:10px;text-align:center;width:100%;outline:none;font-family:Georgia,serif;padding:10px;cursor:pointer;appearance:auto;}
+.drug-time-select:focus{border-color:#1a2e2b;}
+.drug-time-custom{display:none;margin-top:10px;font-size:30px;font-weight:900;color:#1a2e2b;background:#fff;border:2px dashed #2a7a6a;border-radius:10px;text-align:center;width:100%;outline:none;font-family:Georgia,serif;padding:10px;cursor:pointer;}
+.drug-time-custom.visible{display:block;}
+.edit-hint{font-size:14px;color:#4a7068;margin-top:10px;font-style:italic;}
+
+.status-row{display:flex;gap:18px;justify-content:center;margin-bottom:24px;}
+.status-item{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;color:#1a2e2b;transition:opacity 0.3s;}
+.status-item.dimmed{opacity:0.3;}
+.status-item.highlighted{opacity:1;}
+.dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;transition:box-shadow 0.3s;}
+.dot.orange{background:#f07030;}
+.dot.green{background:#30a070;}
+.dot.green.lit{box-shadow:0 0 0 5px #b8e4d4,0 0 0 9px rgba(48,160,112,0.2);}
+
+.take-btn{display:block;width:100%;background:#fff;border:2.5px solid #1a2e2b;border-radius:18px;padding:22px;font-size:22px;font-weight:800;color:#1a2e2b;cursor:pointer;text-align:center;transition:background .2s,color .2s,border-color .2s;font-family:Georgia,serif;min-height:70px;}
+.take-btn.taken{background:#b8e4d4;border-color:#2a7a6a;color:#2a7a6a;}
+.taken-msg{text-align:center;font-size:16px;color:#2a7a6a;font-weight:600;margin-top:14px;min-height:22px;}
+
+/* ====== APRENDER ====== */
+.edu-block{display:flex;align-items:center;gap:14px;background:#fff;border:2px solid #1a2e2b;border-radius:18px;padding:20px 18px;margin-bottom:14px;cursor:pointer;transition:background 0.15s;min-height:70px;}
+.edu-block:active{background:#e8f4f1;}
+.edu-num{width:44px;height:44px;background:#b8e4d4;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#1a2e2b;flex-shrink:0;font-family:Georgia,serif;}
+.edu-label{font-size:18px;font-weight:700;color:#1a2e2b;line-height:1.35;font-family:Georgia,serif;}
+.edu-arrow{margin-left:auto;font-size:26px;color:#4a7068;flex-shrink:0;}
+
+/* ====== PANTALLAS EDUCATIVAS ====== */
+.edu-content{flex:1;}
+.edu-section-title{font-size:28px;font-weight:800;color:#1a2e2b;margin-bottom:16px;line-height:1.2;font-family:Georgia,serif;}
+.edu-intro{font-size:18px;color:#1a2e2b;line-height:1.8;margin-bottom:18px;}
+.edu-bullets{list-style:none;margin-bottom:18px;}
+.edu-bullets li{display:flex;align-items:flex-start;gap:10px;font-size:17px;color:#1a2e2b;line-height:1.7;margin-bottom:12px;background:#fff;border-radius:14px;padding:15px 17px;border:1.5px solid #c8e0da;}
+.edu-bullets li::before{content:"•";color:#2a7a6a;font-size:22px;flex-shrink:0;margin-top:0px;}
+.edu-disclaimer{background:#f4ead4;border:1.5px solid #c8a840;border-radius:12px;padding:15px 17px;font-size:15px;color:#5a4a10;line-height:1.65;margin-top:10px;}
+.edu-disclaimer strong{font-weight:700;}
+
+/* ====== SEGUIMIENTO ====== */
+.follow-card{background:#fff;border:2px solid #1a2e2b;border-radius:20px;padding:24px;margin-bottom:18px;text-align:center;}
+.follow-label{font-size:17px;color:#4a7068;font-weight:600;margin-bottom:10px;}
+.follow-big{font-size:30px;font-weight:800;color:#1a2e2b;line-height:1.4;font-family:Georgia,serif;}
+.follow-highlight{color:#2a7a6a;}
+.week-dots{display:flex;justify-content:center;gap:7px;margin:18px 0;}
+.week-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.week-dot.taken{background:#30a070;color:#fff;}
+.week-dot.missed{background:#f07030;color:#fff;}
+.week-dot.future{background:#d8ede8;color:#4a7068;}
+.week-legend{display:flex;gap:14px;justify-content:center;font-size:14px;font-weight:600;color:#4a7068;margin-top:6px;}
+.week-legend span{display:flex;align-items:center;gap:5px;}
+.leg-dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.accompany-msg{text-align:center;font-size:18px;color:#1a2e2b;font-weight:700;padding:20px;background:#b8e4d4;border-radius:16px;line-height:1.6;font-family:Georgia,serif;}
+
+/* ====== MENSUAL (nueva pantalla) ====== */
+.mensual-pct-wrap{text-align:center;margin-bottom:20px;}
+.mensual-pct-num{font-size:64px;font-weight:900;color:#2a7a6a;font-family:Georgia,serif;line-height:1;}
+.mensual-pct-label{font-size:17px;color:#4a7068;font-weight:600;margin-top:6px;}
+.mensual-card{background:#fff;border:2px solid #1a2e2b;border-radius:20px;padding:22px;margin-bottom:16px;text-align:center;}
+.mensual-reward{background:#b8e4d4;border-radius:18px;padding:20px;text-align:center;margin-bottom:16px;}
+.mensual-reward-icon{font-size:48px;margin-bottom:8px;}
+.mensual-reward-text{font-size:19px;font-weight:700;color:#1a2e2b;line-height:1.5;font-family:Georgia,serif;}
+.mensual-bar-bg{background:#d8ede8;border-radius:12px;height:22px;width:100%;margin:14px 0 6px;overflow:hidden;}
+.mensual-bar-fill{background:#2a7a6a;height:100%;border-radius:12px;transition:width .6s ease;}
+.btn-ver-mes{display:block;width:100%;background:#2a7a6a;border:none;border-radius:16px;padding:18px;font-size:19px;font-weight:800;color:#fff;cursor:pointer;text-align:center;font-family:Georgia,serif;margin-top:16px;min-height:62px;}
+.btn-ver-mes:active{background:#1a5a4a;}
+
+/* ====== ALARMA ====== */
+.alarm-icon-wrap{text-align:center;margin-bottom:14px;}
+.alarm-card{background:#b8e4d4;border-radius:22px;padding:20px;margin-bottom:16px;}
+.alarm-card-title{font-size:19px;font-weight:800;color:#1a2e2b;text-align:center;margin-bottom:14px;font-family:Georgia,serif;}
+.alarm-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:10px;font-size:18px;font-weight:600;color:#1a2e2b;}
+.alarm-item-dot{width:11px;height:11px;border-radius:50%;background:#f07030;flex-shrink:0;}
+.disclaimer{background:#fff;border:2.5px solid #c04010;border-radius:14px;padding:18px;text-align:center;font-size:16px;font-weight:700;color:#c04010;text-decoration:underline;cursor:pointer;width:100%;font-family:Georgia,serif;transition:background .15s;}
+.disclaimer:active{background:#fff0ea;}
+
+/* ====== AVISO IMPORTANTE (nueva pantalla) ====== */
+.aviso-icon{font-size:56px;text-align:center;margin-bottom:16px;}
+.aviso-title{font-size:32px;font-weight:900;color:#c04010;text-align:center;margin-bottom:18px;font-family:Georgia,serif;line-height:1.2;}
+.aviso-body{font-size:19px;color:#1a2e2b;line-height:1.75;text-align:center;background:#fff;border-radius:16px;padding:22px;border:2px solid #e0c0b0;margin-bottom:24px;}
+.aviso-ok-btn{display:block;width:100%;background:#2a7a6a;border:none;border-radius:18px;padding:22px;font-size:22px;font-weight:800;color:#fff;cursor:pointer;text-align:center;font-family:Georgia,serif;min-height:70px;}
+.aviso-ok-btn:active{background:#1a5a4a;}
+
+/* ====== BOTTOM NAV ====== */
+.bottom-nav{display:flex;align-items:stretch;border-top:1.5px solid #a0c8c0;background:#dff0ed;flex-shrink:0;position:sticky;bottom:0;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 2px 7px;cursor:pointer;border:none;background:transparent;gap:4px;}
+.nav-btn.active .nav-label{color:#1a7a5a;font-weight:700;}
+.nav-btn.active .nav-icon-wrap{background:#b8e4d4;}
+.nav-icon-wrap{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.nav-label{font-size:10px;font-weight:600;color:#4a7068;text-align:center;line-height:1.2;font-family:Georgia,serif;}
+.nav-btn-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 10px;cursor:pointer;border:none;background:transparent;gap:3px;position:relative;}
+.nav-center-icon{width:56px;height:56px;border-radius:50%;background:#2a7a6a;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(42,122,106,0.35);margin-top:-16px;transition:background .15s;}
+.nav-btn-center.active .nav-center-icon{background:#1a5a4a;}
+.nav-btn-center:active .nav-center-icon{background:#1a5a4a;}
+.nav-center-label{font-size:10px;font-weight:700;color:#2a7a6a;text-align:center;line-height:1.2;font-family:Georgia,serif;margin-top:2px;}
+.nav-btn-center.active .nav-center-label{color:#1a5a4a;}
+</style>
+</head>
+<body>
+<div class="phone" role="main">
+
+  <!-- ===== INICIO ===== -->
+  <div class="screen active" id="s-inicio" aria-label="Pantalla de inicio">
+    <div class="ecg-wrap">
+      <svg width="290" height="66" viewBox="0 0 290 66" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustración de un electrocardiograma con latido cardíaco">
+        <title>Electrocardiograma (ECG) con latido</title>
+        <desc>Línea de ECG que representa el ritmo cardíaco</desc>
+        <rect width="290" height="66" rx="14" fill="#b8e4d4" opacity="0.5"/>
+        <polyline points="0,33 30,33 38,33 44,16 48,54 52,10 56,50 60,33 95,33 130,33 138,33 144,17 148,52 152,9 156,51 160,33 195,33 230,33 238,33 244,17 248,52 252,9 256,51 260,33 290,33"
+          fill="none" stroke="#2a7a6a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M145,54 C145,54 136,48 136,41 C136,37.7 138.7,35 142,35 C143.5,35 145,36 145,36 C145,36 146.5,35 148,35 C151.3,35 154,37.7 154,41 C154,48 145,54 145,54Z" fill="#e05050" opacity="0.85"/>
+      </svg>
+    </div>
+    <div class="logo-area">
+      <div class="app-name">ManejoFA</div>
+      <div class="app-tagline">Seguimiento enfermero · Fibrilación auricular</div>
+    </div>
+
+    <button class="main-btn" onclick="goTo('s-tratamiento')" aria-label="Ir a Mi tratamiento">
+      <div class="main-btn-icon green" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="4" rx="1" fill="#2a7a6a"/><rect x="5" y="5" width="14" height="16" rx="2" fill="#2a7a6a" opacity="0.2" stroke="#2a7a6a" stroke-width="1.5"/><path d="M9 12h6M12 9v6" stroke="#2a7a6a" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div class="main-btn-text">Mi tratamiento</div>
+        <div class="main-btn-sub">Consulta y registra tu medicación</div>
+      </div>
+    </button>
+
+    <button class="main-btn" onclick="goTo('s-aprender')" aria-label="Ir a Aprender sobre mi enfermedad">
+      <div class="main-btn-icon blue" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 3L2 8l10 5 10-5-10-5z" fill="#1a5a8a" opacity="0.9"/><path d="M2 12l10 5 10-5M2 16l10 5 10-5" stroke="#1a5a8a" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div class="main-btn-text">Aprender sobre mi enfermedad</div>
+        <div class="main-btn-sub">Información y guías útiles</div>
+      </div>
+    </button>
+
+    <button class="main-btn" onclick="goTo('s-seguimiento')" aria-label="Ir a Mi seguimiento">
+      <div class="main-btn-icon orange" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#a05010" stroke-width="1.8" fill="none"/><path d="M3 9h18" stroke="#a05010" stroke-width="1.5"/><path d="M8 2v4M16 2v4" stroke="#a05010" stroke-width="1.8" stroke-linecap="round"/><rect x="7" y="13" width="3" height="3" rx="0.5" fill="#a05010"/><rect x="14" y="13" width="3" height="3" rx="0.5" fill="#a05010"/></svg>
+      </div>
+      <div>
+        <div class="main-btn-text">Mi seguimiento</div>
+        <div class="main-btn-sub">Resumen semanal de adherencia</div>
+      </div>
+    </button>
+
+    <p class="inicio-frase" aria-label="Mensaje motivador">Cuidar tu anticoagulación es cuidar tu salud.</p>
+  </div>
+
+  <!-- ===== TRATAMIENTO ===== -->
+  <div class="screen" id="s-tratamiento" aria-label="Pantalla Mi tratamiento">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver a la pantalla anterior">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="screen-title">Mi tratamiento</div>
+    <p class="screen-subtitle">Aquí puedes consultar tu tratamiento anticoagulante diario.</p>
+
+    <div class="drug-card">
+      <!-- Selector fármaco REQ D6+D7 -->
+      <div class="drug-name-label">Fármaco:</div>
+      <select class="drug-select" id="drug-select" aria-label="Selecciona el fármaco" onchange="onDrugSelect()">
+        <option value="Rivaroxabán (Xarelto)">Rivaroxabán (Xarelto)</option>
+        <option value="Dabigatrán">Dabigatrán</option>
+        <option value="Edoxabán">Edoxabán</option>
+        <option value="Apixabán">Apixabán</option>
+        <option value="Acenocumarol (Sintrom)">Acenocumarol (Sintrom)</option>
+        <option value="Warfarina">Warfarina</option>
+        <option value="Adiro (Aspirina)">Adiro (Aspirina)</option>
+        <option value="__otra__">Otra (especificar)</option>
+      </select>
+      <input class="drug-other-input" id="drug-other" type="text" placeholder="Escribe el nombre del fármaco"
+        aria-label="Nombre del fármaco personalizado"
+        oninput="saveDrugData()" maxlength="50" autocomplete="off" spellcheck="false"/>
+
+      <!-- Selector hora REQ D8 -->
+      <div class="drug-schedule-label">HORARIO HABITUAL:</div>
+      <select class="drug-time-select" id="drug-time-select" aria-label="Selecciona la hora habitual" onchange="onTimeSelect()"></select>
+      <input class="drug-time-custom" id="drug-time-custom" type="time"
+        aria-label="Hora personalizada"
+        onchange="saveDrugData()"/>
+      <div class="edit-hint">Toca para modificar el fármaco o la hora</div>
+    </div>
+
+    <div class="status-row">
+      <div class="status-item highlighted" id="status-pending" aria-live="polite">
+        <div class="dot orange" id="dot-orange"></div>
+        Pendiente de tomar
+      </div>
+      <div class="status-item dimmed" id="status-taken-label">
+        <div class="dot green" id="dot-green"></div>
+        Medicación tomada
+      </div>
+    </div>
+
+    <button class="take-btn" id="take-btn" onclick="toggleMed()"
+      aria-pressed="false" aria-label="Marcar que he tomado la medicación hoy">
+      He tomado la medicación
+    </button>
+    <div class="taken-msg" id="taken-msg" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <!-- ===== APRENDER ===== -->
+  <div class="screen" id="s-aprender" aria-label="Pantalla Aprender sobre mi enfermedad">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="screen-title">Aprender sobre mi enfermedad</div>
+    <p class="screen-subtitle">Información para ayudarte a entender tu enfermedad y tu tratamiento.</p>
+
+    <div class="edu-block" onclick="goTo('edu-fa')" role="button" tabindex="0" aria-label="¿Qué es la fibrilación auricular?">
+      <div class="edu-num" aria-hidden="true">1</div>
+      <div class="edu-label">¿Qué es la fibrilación auricular?</div>
+      <div class="edu-arrow" aria-hidden="true">›</div>
+    </div>
+    <div class="edu-block" onclick="goTo('edu-anticoag')" role="button" tabindex="0" aria-label="¿Para qué sirve la anticoagulación?">
+      <div class="edu-num" aria-hidden="true">2</div>
+      <div class="edu-label">¿Para qué sirve la anticoagulación?</div>
+      <div class="edu-arrow" aria-hidden="true">›</div>
+    </div>
+    <div class="edu-block" onclick="goTo('edu-olvido')" role="button" tabindex="0" aria-label="¿Qué hago si olvido una dosis?">
+      <div class="edu-num" aria-hidden="true">3</div>
+      <div class="edu-label">¿Qué hago si olvido una dosis?</div>
+      <div class="edu-arrow" aria-hidden="true">›</div>
+    </div>
+    <div class="edu-block" onclick="goTo('edu-recomend')" role="button" tabindex="0" aria-label="Recomendaciones para el día a día">
+      <div class="edu-num" aria-hidden="true">4</div>
+      <div class="edu-label">Recomendaciones para el día a día</div>
+      <div class="edu-arrow" aria-hidden="true">›</div>
+    </div>
+    <div class="edu-block" onclick="goTo('s-alarma')" role="button" tabindex="0" aria-label="Signos de alarma">
+      <div class="edu-num" aria-hidden="true">5</div>
+      <div class="edu-label">Signos de alarma</div>
+      <div class="edu-arrow" aria-hidden="true">›</div>
+    </div>
+  </div>
+
+  <!-- ===== EDU: FA ===== -->
+  <div class="screen" id="edu-fa" aria-label="Qué es la fibrilación auricular">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="edu-content">
+      <div class="edu-section-title">¿Qué es la fibrilación auricular?</div>
+      <p class="edu-intro">Es una alteración del ritmo del corazón. Normalmente el corazón late de forma ordenada y regular. En la fibrilación auricular, las señales eléctricas se desorganizan y el corazón late de forma irregular.</p>
+      <ul class="edu-bullets" aria-label="Puntos clave sobre la fibrilación auricular">
+        <li>Es una de las arritmias más frecuentes, especialmente a partir de los 65 años.</li>
+        <li>El corazón puede latir demasiado rápido, demasiado lento o de forma irregular.</li>
+        <li>Algunas personas sienten palpitaciones o cansancio; otras no notan nada.</li>
+        <li>No es urgente por sí sola, pero requiere seguimiento y tratamiento.</li>
+        <li>Con el tratamiento adecuado se puede llevar una vida normal.</li>
+      </ul>
+      <div class="edu-disclaimer" role="note">
+        <strong>Información educativa:</strong> Esta información es general y no sustituye la atención sanitaria. Consulte siempre con su enfermera o médico ante cualquier duda.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== EDU: ANTICOAGULACIÓN ===== -->
+  <div class="screen" id="edu-anticoag" aria-label="Para qué sirve la anticoagulación">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="edu-content">
+      <div class="edu-section-title">¿Para qué sirve la anticoagulación?</div>
+      <p class="edu-intro">Cuando el corazón late de forma irregular, la sangre puede quedarse "quieta" en algunas zonas y formar coágulos. Estos coágulos pueden viajar al cerebro y causar un ictus. El anticoagulante evita que esto ocurra.</p>
+      <ul class="edu-bullets" aria-label="Puntos clave sobre la anticoagulación">
+        <li>El anticoagulante adelgaza la sangre para que no se formen coágulos peligrosos.</li>
+        <li>Reduce mucho el riesgo de sufrir un ictus.</li>
+        <li>Es fundamental tomarlo todos los días, a la misma hora.</li>
+        <li>No lo deje de tomar sin consultarlo con su médico o enfermera.</li>
+        <li>Algunos alimentos y medicamentos pueden interactuar con él. Coméntelo siempre.</li>
+      </ul>
+      <div class="edu-disclaimer" role="note">
+        <strong>Información educativa:</strong> Esta información es general y no sustituye la atención sanitaria. Consulte siempre con su enfermera o médico ante cualquier duda.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== EDU: OLVIDO ===== -->
+  <div class="screen" id="edu-olvido" aria-label="Qué hago si olvido una dosis">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="edu-content">
+      <div class="edu-section-title">¿Qué hago si olvido una dosis?</div>
+      <p class="edu-intro">Olvidar una toma de vez en cuando es algo que puede pasar. Lo importante es saber cómo actuar para no poner en riesgo su salud.</p>
+      <ul class="edu-bullets" aria-label="Pasos si olvida una dosis">
+        <li>Si se da cuenta el mismo día, tome la pastilla en cuanto lo recuerde.</li>
+        <li>Si ya es casi la hora de la siguiente dosis, saltese la dosis olvidada y continúe con su horario habitual al día siguiente.</li>
+        <li>Nunca tome dos pastillas juntas para compensar una olvidada.</li>
+        <li>Anote el olvido en su seguimiento o coméntelo en la próxima visita.</li>
+        <li>Si tiene dudas, llame a su enfermera o centro de salud.</li>
+      </ul>
+      <div class="edu-disclaimer" role="note">
+        <strong>Información educativa:</strong> Esta información es general y no sustituye la atención sanitaria. Consulte siempre con su enfermera o médico ante cualquier duda.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== EDU: RECOMENDACIONES ===== -->
+  <div class="screen" id="edu-recomend" aria-label="Recomendaciones para el día a día">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="edu-content">
+      <div class="edu-section-title">Recomendaciones para el día a día</div>
+      <p class="edu-intro">Pequeños hábitos del día a día pueden ayudarle a llevar mejor su tratamiento y su enfermedad.</p>
+      <ul class="edu-bullets" aria-label="Recomendaciones diarias">
+        <li>Tome su medicación siempre a la misma hora para que sea más fácil recordarlo.</li>
+        <li>Lleve siempre una lista actualizada de todos sus medicamentos.</li>
+        <li>Evite golpes fuertes, ya que el anticoagulante puede hacer que los hematomas sean mayores.</li>
+        <li>Limite el consumo de alcohol. Consulte con su enfermera qué cantidad es segura.</li>
+        <li>Antes de tomar cualquier medicamento nuevo (aunque sea sin receta), consúltelo.</li>
+        <li>Acuda a sus controles y revisiones aunque se encuentre bien.</li>
+        <li>Si practica deporte, coméntelo con su equipo sanitario para recibir consejo adecuado.</li>
+      </ul>
+      <div class="edu-disclaimer" role="note">
+        <strong>Información educativa:</strong> Esta información es general y no sustituye la atención sanitaria. Consulte siempre con su enfermera o médico ante cualquier duda.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SEGUIMIENTO ===== -->
+  <div class="screen" id="s-seguimiento" aria-label="Pantalla Mi seguimiento">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="screen-title">Mi seguimiento</div>
+    <p class="screen-subtitle">Aquí puedes ver un resumen de cómo estás siguiendo tu tratamiento.</p>
+
+    <div class="follow-card">
+      <div class="follow-label">Esta semana has tomado tu medicación</div>
+      <div class="follow-big"><span class="follow-highlight" id="taken-count">0</span> de 7 días</div>
+      <div class="week-dots" id="week-dots-row" aria-label="Días de la semana con toma registrada"></div>
+      <div class="week-legend">
+        <span><span class="leg-dot" style="background:#30a070"></span>Tomada</span>
+        <span><span class="leg-dot" style="background:#f07030"></span>No tomada</span>
+        <span><span class="leg-dot" style="background:#d8ede8"></span>Pendiente</span>
+      </div>
+    </div>
+
+    <p class="accompany-msg" aria-label="Mensaje de acompañamiento">
+      Te acompañamos en el cuidado de tu salud y tratamiento.
+    </p>
+    <p style="font-size:14px;color:#4a7068;text-align:center;margin-top:14px;line-height:1.6;">
+      El seguimiento se calcula de lunes a domingo de la semana actual.<br>Los días futuros aparecen en gris.
+    </p>
+
+    <button class="btn-ver-mes" onclick="goTo('s-mensual')" aria-label="Ver cumplimiento del mes">
+      📅 Ver mi cumplimiento del mes
+    </button>
+  </div>
+
+  <!-- ===== MENSUAL ===== -->
+  <div class="screen" id="s-mensual" aria-label="Cumplimiento mensual">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver a Mi seguimiento">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="screen-title">Este mes</div>
+    <p class="screen-subtitle" id="mensual-rango">Cargando...</p>
+
+    <div class="mensual-card">
+      <div class="mensual-pct-wrap">
+        <div class="mensual-pct-num" id="mensual-pct">—</div>
+        <div class="mensual-pct-label" id="mensual-pct-label">de cumplimiento este mes</div>
+      </div>
+      <div class="mensual-bar-bg">
+        <div class="mensual-bar-fill" id="mensual-bar" style="width:0%"></div>
+      </div>
+      <p style="font-size:15px;color:#4a7068;margin-top:8px;" id="mensual-detalle">—</p>
+    </div>
+
+    <div class="mensual-reward" id="mensual-reward" style="display:none;">
+      <div class="mensual-reward-icon" id="mensual-reward-icon">⭐</div>
+      <div class="mensual-reward-text" id="mensual-reward-text">¡Muy bien!</div>
+    </div>
+
+    <p style="font-size:14px;color:#4a7068;text-align:center;line-height:1.6;margin-top:4px;">
+      Basado en los días que has marcado "He tomado la medicación" en este mes natural.
+    </p>
+  </div>
+
+  <!-- ===== ALARMA ===== -->
+  <div class="screen" id="s-alarma" aria-label="Pantalla Signos de alarma">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="screen-title">Signos de alarma</div>
+    <p class="screen-subtitle">Contacta con un profesional sanitario si presentas alguno de estos signos.</p>
+
+    <div class="alarm-icon-wrap">
+      <svg width="64" height="58" viewBox="0 0 64 58" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Triángulo de advertencia">
+        <title>Señal de advertencia</title>
+        <polygon points="32,4 2,54 62,54" fill="#f07030" stroke="#c04010" stroke-width="1.5" stroke-linejoin="round"/>
+        <text x="32" y="47" text-anchor="middle" font-size="30" font-weight="900" fill="white" font-family="Georgia,serif">!</text>
+      </svg>
+    </div>
+
+    <div class="alarm-card">
+      <div class="alarm-card-title">Es importante pedir ayuda ante:</div>
+      <div class="alarm-item"><div class="alarm-item-dot"></div>Sangrados importantes</div>
+      <div class="alarm-item"><div class="alarm-item-dot"></div>Mareos intensos o desmayos</div>
+      <div class="alarm-item"><div class="alarm-item-dot"></div>Golpes con hematomas grandes</div>
+      <div class="alarm-item"><div class="alarm-item-dot"></div>Dudas importantes sobre la medicación</div>
+    </div>
+    <button class="disclaimer" role="button" onclick="goTo('s-aviso')" aria-label="Ver aviso importante sobre esta app">
+      ⚠️ Esta app no sustituye la atención sanitaria.
+    </button>
+  </div>
+
+  <!-- ===== AVISO IMPORTANTE ===== -->
+  <div class="screen" id="s-aviso" aria-label="Aviso importante">
+    <div class="back-bar">
+      <button class="back-btn" onclick="goBack()" aria-label="Volver">
+        <svg viewBox="0 0 22 22" fill="none"><path d="M14 5L8 11l6 6" stroke="#2a7a6a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+    <div class="aviso-icon" aria-hidden="true">⚠️</div>
+    <div class="aviso-title">Aviso importante</div>
+    <div class="aviso-body" role="note">
+      Esta app no sustituye la atención sanitaria. Ante signos de alarma o dudas, contacta con un profesional sanitario o acude a urgencias.
+    </div>
+    <button class="aviso-ok-btn" onclick="goBack()" aria-label="Entendido, volver a la pantalla anterior">
+      Entendido
+    </button>
+  </div>
+
+  <!-- ===== BOTTOM NAV — orden: Tratamiento | Aprender | [INICIO] | Seguimiento | Alarma ===== -->
+  <nav class="bottom-nav" aria-label="Navegación principal">
+
+    <button class="nav-btn" id="nb-tratamiento" onclick="goTo('s-tratamiento')" aria-label="Mi tratamiento">
+      <div class="nav-icon-wrap" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="4" rx="1" stroke="#4a7068" stroke-width="1.6" fill="none"/><rect x="5" y="5" width="14" height="16" rx="2" stroke="#4a7068" stroke-width="1.6" fill="none"/><path d="M9 12h6M12 9v6" stroke="#4a7068" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <span class="nav-label">Tratamiento</span>
+    </button>
+
+    <button class="nav-btn" id="nb-aprender" onclick="goTo('s-aprender')" aria-label="Aprender">
+      <div class="nav-icon-wrap" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3L2 8l10 5 10-5-10-5z" stroke="#4a7068" stroke-width="1.6" stroke-linejoin="round" fill="none"/><path d="M2 12l10 5 10-5" stroke="#4a7068" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </div>
+      <span class="nav-label">Aprender</span>
+    </button>
+
+    <!-- BOTÓN CENTRAL INICIO -->
+    <button class="nav-btn-center" id="nb-inicio" onclick="goTo('s-inicio')" aria-label="Inicio">
+      <div class="nav-center-icon" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M3 12L12 4l9 8M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span class="nav-center-label">Inicio</span>
+    </button>
+
+    <button class="nav-btn" id="nb-seguimiento" onclick="goTo('s-seguimiento')" aria-label="Mi seguimiento">
+      <div class="nav-icon-wrap" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#4a7068" stroke-width="1.6" fill="none"/><path d="M3 9h18" stroke="#4a7068" stroke-width="1.4"/><rect x="7" y="13" width="3" height="3" rx="0.5" fill="#4a7068"/><rect x="14" y="13" width="3" height="3" rx="0.5" fill="#4a7068"/></svg>
+      </div>
+      <span class="nav-label">Seguimiento</span>
+    </button>
+
+    <button class="nav-btn" id="nb-alarma" onclick="goTo('s-alarma')" aria-label="Signos de alarma">
+      <div class="nav-icon-wrap" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3L2 20h20L12 3z" stroke="#4a7068" stroke-width="1.6" stroke-linejoin="round" fill="none"/><path d="M12 9v5M12 16v1.5" stroke="#4a7068" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <span class="nav-label">Alarma</span>
+    </button>
+
+  </nav>
+</div>
+
+<script>
+// ============================================================
+// HISTORIAL DE NAVEGACIÓN (stack) — REQ A2
+// ============================================================
+var _history = [];   // stack de ids de pantalla
+var _current = 's-inicio';
+
+var NAV_MAP = {
+  's-inicio'       :'nb-inicio',
+  's-tratamiento'  :'nb-tratamiento',
+  's-aprender'     :'nb-aprender',
+  's-seguimiento'  :'nb-seguimiento',
+  's-alarma'       :'nb-alarma',
+  's-mensual'      :'nb-seguimiento',
+  's-aviso'        :'nb-alarma',
+  'edu-fa'         :'nb-aprender',
+  'edu-anticoag'   :'nb-aprender',
+  'edu-olvido'     :'nb-aprender',
+  'edu-recomend'   :'nb-aprender'
+};
+
+function _activateScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  var el = document.getElementById(id);
+  if(el){ el.classList.add('active'); el.scrollTop = 0; }
+
+  // nav highlight
+  document.querySelectorAll('.nav-btn, .nav-btn-center').forEach(function(b){
+    b.classList.remove('active');
+  });
+  var nb = NAV_MAP[id];
+  if(nb){ var btn=document.getElementById(nb); if(btn) btn.classList.add('active'); }
+
+  if(id === 's-seguimiento') renderSeguimiento();
+  if(id === 's-mensual') renderMensual();
+}
+
+/** Navegar a una pantalla nueva (push al historial) */
+function goTo(id){
+  if(id === _current) return;
+  _history.push(_current);
+  _current = id;
+  _activateScreen(id);
+}
+
+/** Volver a la pantalla anterior (pop del historial) */
+function goBack(){
+  if(_history.length === 0){ goTo('s-inicio'); return; }
+  var prev = _history.pop();
+  _current = prev;
+  _activateScreen(prev);
+}
+
+// mantener compatibilidad con llamadas showScreen/showEdu heredadas
+function showScreen(id){ goTo(id); }
+function showEdu(id){ goTo(id); }
+
+// ============================================================
+// SELECTORES: generar opciones de hora (30 min) — REQ D8
+// ============================================================
+function buildTimeOptions(){
+  var sel = document.getElementById('drug-time-select');
+  sel.innerHTML = '';
+  for(var h=0; h<24; h++){
+    for(var m=0; m<60; m+=30){
+      var val = pad(h)+':'+pad(m);
+      var opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val + ' h';
+      sel.appendChild(opt);
+    }
+  }
+  var optCustom = document.createElement('option');
+  optCustom.value = '__custom__';
+  optCustom.textContent = 'Personalizado...';
+  sel.appendChild(optCustom);
+}
+
+function onTimeSelect(){
+  var sel = document.getElementById('drug-time-select');
+  var customInput = document.getElementById('drug-time-custom');
+  if(sel.value === '__custom__'){
+    customInput.classList.add('visible');
+  } else {
+    customInput.classList.remove('visible');
+    saveDrugData();
+  }
+}
+
+// ============================================================
+// SELECTOR FÁRMACO — REQ D7
+// ============================================================
+function onDrugSelect(){
+  var sel = document.getElementById('drug-select');
+  var other = document.getElementById('drug-other');
+  if(sel.value === '__otra__'){
+    other.classList.add('visible');
+  } else {
+    other.classList.remove('visible');
+    saveDrugData();
+  }
+}
+
+// ============================================================
+// PERSISTENCIA localStorage — REQ D6+D7+D8
+// ============================================================
+var DRUG_SEL_KEY    = 'mfa_drug_sel';    // valor del select
+var DRUG_OTHER_KEY  = 'mfa_drug_other';  // texto "Otra"
+var TIME_SEL_KEY    = 'mfa_time_sel';    // valor del select hora
+var TIME_CUSTOM_KEY = 'mfa_time_custom'; // hora personalizada
+var TAKEN_KEY       = 'mfa_taken_log';
+
+function saveDrugData(){
+  var sel   = document.getElementById('drug-select').value;
+  var other = document.getElementById('drug-other').value;
+  var timeSel    = document.getElementById('drug-time-select').value;
+  var timeCustom = document.getElementById('drug-time-custom').value;
+  localStorage.setItem(DRUG_SEL_KEY,    sel);
+  localStorage.setItem(DRUG_OTHER_KEY,  other);
+  localStorage.setItem(TIME_SEL_KEY,    timeSel);
+  localStorage.setItem(TIME_CUSTOM_KEY, timeCustom);
+}
+
+function loadDrugData(){
+  var sel         = localStorage.getItem(DRUG_SEL_KEY);
+  var other       = localStorage.getItem(DRUG_OTHER_KEY) || '';
+  var timeSel     = localStorage.getItem(TIME_SEL_KEY);
+  var timeCustom  = localStorage.getItem(TIME_CUSTOM_KEY) || '';
+
+  var drugSelect  = document.getElementById('drug-select');
+  var drugOther   = document.getElementById('drug-other');
+  var timeSelect  = document.getElementById('drug-time-select');
+  var timeCustomEl= document.getElementById('drug-time-custom');
+
+  if(sel){
+    // comprueba si la opción existe en el select
+    var exists = Array.from(drugSelect.options).some(function(o){ return o.value === sel; });
+    if(exists) drugSelect.value = sel;
+    if(sel === '__otra__'){
+      drugOther.classList.add('visible');
+      drugOther.value = other;
+    }
+  }
+
+  if(timeSel){
+    var texists = Array.from(timeSelect.options).some(function(o){ return o.value === timeSel; });
+    if(texists) timeSelect.value = timeSel;
+    if(timeSel === '__custom__'){
+      timeCustomEl.classList.add('visible');
+      timeCustomEl.value = timeCustom;
+    }
+  }
+}
+
+// ============================================================
+// FUNCIONES AUXILIARES
+// ============================================================
+function getLog(){
+  try{ return JSON.parse(localStorage.getItem(TAKEN_KEY)||'{}'); }catch(e){return {};}
+}
+function saveLog(log){ localStorage.setItem(TAKEN_KEY, JSON.stringify(log)); }
+function todayKey(){
+  var d=new Date();
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function pad(n){ return n<10?'0'+n:String(n); }
+
+// ============================================================
+// TRATAMIENTO: TOGGLE MED
+// ============================================================
+function toggleMed(){
+  var log=getLog(); var key=todayKey();
+  var btn=document.getElementById('take-btn');
+  var msg=document.getElementById('taken-msg');
+  var pendingItem=document.getElementById('status-pending');
+  var takenItem=document.getElementById('status-taken-label');
+  var dotGreen=document.getElementById('dot-green');
+
+  if(log[key]){
+    delete log[key]; saveLog(log);
+    btn.classList.remove('taken');
+    btn.textContent='He tomado la medicación';
+    btn.setAttribute('aria-pressed','false');
+    msg.textContent='';
+    pendingItem.classList.remove('dimmed'); pendingItem.classList.add('highlighted');
+    takenItem.classList.remove('highlighted'); takenItem.classList.add('dimmed');
+    dotGreen.classList.remove('lit');
+  } else {
+    var now=new Date();
+    var timeStr=pad(now.getHours())+':'+pad(now.getMinutes());
+    log[key]=timeStr; saveLog(log);
+    btn.classList.add('taken');
+    btn.textContent='Medicación tomada hoy ✓';
+    btn.setAttribute('aria-pressed','true');
+    msg.textContent='Registrado a las '+timeStr+' h';
+    pendingItem.classList.add('dimmed'); pendingItem.classList.remove('highlighted');
+    takenItem.classList.add('highlighted'); takenItem.classList.remove('dimmed');
+    dotGreen.classList.add('lit');
+  }
+}
+
+function syncTreatmentUI(){
+  var log=getLog(); var key=todayKey();
+  var btn=document.getElementById('take-btn');
+  var msg=document.getElementById('taken-msg');
+  var pendingItem=document.getElementById('status-pending');
+  var takenItem=document.getElementById('status-taken-label');
+  var dotGreen=document.getElementById('dot-green');
+
+  if(log[key]){
+    btn.classList.add('taken'); btn.textContent='Medicación tomada hoy ✓';
+    btn.setAttribute('aria-pressed','true');
+    msg.textContent='Registrado a las '+log[key]+' h';
+    pendingItem.classList.add('dimmed'); pendingItem.classList.remove('highlighted');
+    takenItem.classList.add('highlighted'); takenItem.classList.remove('dimmed');
+    dotGreen.classList.add('lit');
+  } else {
+    btn.classList.remove('taken'); btn.textContent='He tomado la medicación';
+    btn.setAttribute('aria-pressed','false'); msg.textContent='';
+    pendingItem.classList.remove('dimmed'); pendingItem.classList.add('highlighted');
+    takenItem.classList.remove('highlighted'); takenItem.classList.add('dimmed');
+    dotGreen.classList.remove('lit');
+  }
+}
+
+// ============================================================
+// SEGUIMIENTO
+// ============================================================
+var DAY_LABELS=['L','M','X','J','V','S','D'];
+
+function getWeekKeys(){
+  var today=new Date(); var dow=today.getDay();
+  var monday=new Date(today);
+  var diff=(dow===0)?-6:(1-dow);
+  monday.setDate(today.getDate()+diff);
+  var keys=[];
+  for(var i=0;i<7;i++){
+    var d=new Date(monday); d.setDate(monday.getDate()+i);
+    keys.push(d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()));
+  }
+  return keys;
+}
+
+function renderSeguimiento(){
+  var log=getLog(); var keys=getWeekKeys(); var today=todayKey();
+  var count=0; var container=document.getElementById('week-dots-row');
+  container.innerHTML='';
+  keys.forEach(function(k,i){
+    var dot=document.createElement('div');
+    dot.className='week-dot'; dot.textContent=DAY_LABELS[i];
+    if(k>today){
+      dot.classList.add('future'); dot.setAttribute('aria-label',DAY_LABELS[i]+': pendiente');
+    } else if(log[k]){
+      dot.classList.add('taken'); dot.setAttribute('aria-label',DAY_LABELS[i]+': tomada'); count++;
+    } else {
+      dot.classList.add('missed'); dot.setAttribute('aria-label',DAY_LABELS[i]+': no tomada');
+    }
+    container.appendChild(dot);
+  });
+  document.getElementById('taken-count').textContent=count;
+}
+
+// ============================================================
+// MENSUAL
+// ============================================================
+function renderMensual(){
+  var log = getLog();
+  var hoy = new Date();
+  var anyo = hoy.getFullYear();
+  var mes  = hoy.getMonth(); // 0-based
+  var diasEnMes = new Date(anyo, mes+1, 0).getDate();
+  var diaHoy = hoy.getDate();
+  var diasTranscurridos = diaHoy; // incluyendo hoy
+
+  // Nombres de meses en español
+  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var nombreMes = MESES[mes];
+
+  // Contar tomas en el mes
+  var tomadas = 0;
+  for(var d = 1; d <= diaHoy; d++){
+    var key = anyo+'-'+pad(mes+1)+'-'+pad(d);
+    if(log[key]) tomadas++;
+  }
+
+  var pct = diasTranscurridos > 0 ? Math.round((tomadas / diasTranscurridos) * 100) : 0;
+
+  // Actualizar UI
+  document.getElementById('mensual-rango').textContent =
+    nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1) + ' ' + anyo;
+  document.getElementById('mensual-pct').textContent = pct + '%';
+  document.getElementById('mensual-pct-label').textContent = 'de cumplimiento este mes';
+  document.getElementById('mensual-bar').style.width = pct + '%';
+  document.getElementById('mensual-detalle').textContent =
+    'Has tomado la medicación ' + tomadas + ' de ' + diasTranscurridos + ' días (hasta hoy).';
+
+  // Recompensa
+  var rewardEl   = document.getElementById('mensual-reward');
+  var rewardIcon = document.getElementById('mensual-reward-icon');
+  var rewardText = document.getElementById('mensual-reward-text');
+
+  if(pct >= 90){
+    rewardEl.style.display = 'block';
+    rewardIcon.textContent = '🌟';
+    rewardText.textContent = '¡Excelente! Llevas un seguimiento muy bueno. ¡Sigue así!';
+  } else if(pct >= 70){
+    rewardEl.style.display = 'block';
+    rewardIcon.textContent = '👍';
+    rewardText.textContent = '¡Buen trabajo! La constancia marca la diferencia.';
+  } else if(pct >= 50){
+    rewardEl.style.display = 'block';
+    rewardIcon.textContent = '💪';
+    rewardText.textContent = 'Vas por buen camino. ¡Cada día cuenta!';
+  } else {
+    rewardEl.style.display = 'none';
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildTimeOptions();
+loadDrugData();
+syncTreatmentUI();
+_activateScreen('s-inicio');
+
+// Teclado para bloques edu
+document.querySelectorAll('.edu-block[role=button]').forEach(function(el){
+  el.addEventListener('keydown',function(e){
+    if(e.key==='Enter'||e.key===' '){ el.click(); e.preventDefault(); }
+  });
+});
+
+// Guardar hora personalizada al cambiar
+document.getElementById('drug-time-custom').addEventListener('change', saveDrugData);
+document.getElementById('drug-other').addEventListener('input', saveDrugData);
+</script>
+</body>
+</html>
