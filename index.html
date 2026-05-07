@@ -17,8 +17,16 @@
 <meta name="apple-mobile-web-app-title" content="ManejoFA">
 <meta name="theme-color" content="#2a7a6a">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Georgia,'Times New Roman',serif;background:#c8e6e0;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:1rem 0 2rem;}
+body{
+  font-family: Georgia,'Times New Roman',serif;
+  background:#c8e6e0;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  height:100vh;
+  overflow:hidden;   /* 🔴 CLAVE: la página NO scrollea */
+  padding:0;
+}
 
 /* PHONE FRAME */
 .phone{width:370px;min-height:700px;background:#dff0ed;border-radius:36px;border:2.5px solid #a0c8c0;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 8px 32px rgba(0,80,60,0.13);}
@@ -184,14 +192,17 @@ body{font-family:Georgia,'Times New Roman',serif;background:#c8e6e0;display:flex
   body {
     background: #dff0ed;
     padding: 0;
+    height: 100vh;
+    overflow: hidden; /* 🔴 refuerzo en móvil */
   }
 
   .phone {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;    /* 🔴 fija la altura */
     border-radius: 0;
     border: none;
     box-shadow: none;
+    overflow: hidden; /* 🔴 el contenedor no se mueve */
   }
 }
 </style>
