@@ -9,8 +9,8 @@
 
 <link rel="manifest" href="manifest.json">
 
-<link rel="icon" href="icons/icon.png">
-<link rel="apple-touch-icon" href="icons/icon.png">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -179,6 +179,22 @@ body{font-family:Georgia,'Times New Roman',serif;background:#c8e6e0;display:flex
 .nav-btn-center:active .nav-center-icon{background:#1a5a4a;}
 .nav-center-label{font-size:10px;font-weight:700;color:#2a7a6a;text-align:center;line-height:1.2;font-family:Georgia,serif;margin-top:2px;}
 .nav-btn-center.active .nav-center-label{color:#1a5a4a;}
+
+/* ====== MODO APP REAL EN MÓVIL ====== */
+@media (max-width: 480px) {
+  body {
+    background: #dff0ed;
+    padding: 0;
+  }
+
+  .phone {
+    width: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+}
 </style>
 </head>
 <body>
